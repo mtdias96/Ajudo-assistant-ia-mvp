@@ -1,69 +1,109 @@
 <!--
-title: 'AWS Simple HTTP Endpoint example in NodeJS'
-description: 'This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.'
-layout: Doc
-framework: v4
-platform: AWS
-language: nodeJS
-authorLink: 'https://github.com/serverless'
-authorName: 'Serverless, Inc.'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
+title: 'Ajudo Assistant'
+description: 'AI Personal Assistant built with Serverless, AWS and Node.js'
 -->
 
-# Serverless Framework Node HTTP API on AWS
+# 🤖 Ajudo Assistant
 
-This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.
+<p align="center">
+  <img src="https://img.shields.io/badge/status-MVP-blue" />
+  <img src="https://img.shields.io/badge/node-%3E%3D18-green" />
+  <img src="https://img.shields.io/badge/serverless-v4-orange" />
+  <img src="https://img.shields.io/badge/aws-lambda-yellow" />
+  <img src="https://img.shields.io/badge/database-dynamodb-blue" />
+  <img src="https://img.shields.io/badge/license-MIT-lightgrey" />
+</p>
 
-This template does not include any kind of persistence (database). For more advanced examples, check out the [serverless/examples repository](https://github.com/serverless/examples/) which includes Typescript, Mongo, DynamoDB and other examples.
+<p align="center">
+  💬 Assistente pessoal com IA via WhatsApp para organizar sua vida financeira e rotina
+</p>
 
-## Usage
+---
 
-### Deployment
+## 📌 Sobre o Projeto
 
-In order to deploy the example, you need to run the following command:
+O **Ajudo Assistant** é uma plataforma de assistente pessoal com IA que permite ao usuário organizar sua vida de forma simples através de mensagens.
 
-```
-serverless deploy
-```
+Com ele, é possível:
 
-After running deploy, you should see output similar to:
+- 💰 Registrar e acompanhar gastos  
+- 📅 Criar e gerenciar compromissos  
+- 🔔 Receber lembretes automáticos  
+- 💬 Interagir com IA de forma natural  
 
-```
-Deploying "serverless-http-api" to stage "dev" (us-east-1)
+---
 
-✔ Service deployed to stack serverless-http-api-dev (91s)
+## 🚀 Funcionalidades (MVP)
 
-endpoint: GET - https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/
-functions:
-  hello: serverless-http-api-dev-hello (1.6 kB)
-```
+- ✔️ Registro de gastos via chat  
+- ✔️ Consulta de gastos mensais  
+- ✔️ Criação de compromissos  
+- ✔️ Notificações de lembrete  
+- ✔️ Histórico de conversas  
+- ✔️ Resumo diário automático  
 
-_Note_: In current form, after deployment, your API is public and can be invoked by anyone. For production deployments, you might want to configure an authorizer. For details on how to do that, refer to [HTTP API (API Gateway V2) event docs](https://www.serverless.com/framework/docs/providers/aws/events/http-api).
+---
 
-### Invocation
+## 🧠 Exemplos de Uso
 
-After successful deployment, you can call the created application via HTTP:
-
-```
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/
-```
-
-Which should result in response similar to:
-
-```json
-{ "message": "Go Serverless v4! Your function executed successfully!" }
-```
-
-### Local development
-
-The easiest way to develop and test your function is to use the `dev` command:
-
-```
-serverless dev
+```bash
+Gastei 50 reais com lanche
 ```
 
-This will start a local emulator of AWS Lambda and tunnel your requests to and from AWS Lambda, allowing you to interact with your function as if it were running in the cloud.
+```bash
+Tenho reunião amanhã às 14h
+```
 
-Now you can invoke the function as before, but this time the function will be executed locally. Now you can develop your function locally, invoke it, and see the results immediately without having to re-deploy.
+```bash
+Quanto gastei esse mês?
+```
 
-When you are done developing, don't forget to run `serverless deploy` to deploy the function to the cloud.
+---
+
+## 🏗️ Arquitetura
+
+- ⚡ AWS Lambda  
+- 🌐 API Gateway  
+- 💾 DynamoDB  
+- 📲 Integração com WhatsApp  
+- 🧠 IA (LLM - interpretação de linguagem natural)  
+
+---
+
+## ⚙️ Requisitos Não Funcionais
+
+- ⏱️ Tempo de resposta: até 20s  
+- 📈 Suporte a múltiplos usuários simultâneos  
+- 🔐 Isolamento de dados por usuário  
+- 📱 Acesso via WhatsApp  
+- 🚫 IA não deve inventar dados  
+
+---
+
+## 🛠️ Tecnologias
+
+- Node.js  
+- Serverless Framework v4  
+- AWS (Lambda, API Gateway, DynamoDB)  
+- OpenAI / LLM  
+
+---
+
+## 📈 Roadmap
+
+- 📸 Registro por imagem  
+- 🏋️ Monitoramento de treinos  
+- 🎯 Metas  
+- 🧠 Personalização da IA  
+
+---
+
+## 📄 Licença
+
+MIT License
+
+---
+
+## 👨‍💻 Autor
+
+Matheus Dias
