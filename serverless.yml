@@ -3,29 +3,47 @@ org: wppbussnisdias
 service: ajudo-assistant-ia
 frameworkVersion: "4"
 
+useDotenv: true
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 8080
+    lambdaPort: 8083
+    noPrependStageInUrl: true
+
 provider:
   name: aws
   region: sa-east-1
   runtime: nodejs24.x
-  memorySize: 128
+  memorySize: 256
+  timeout: 10
+  logRetentionInDays: 14
+  environment:
+    TWILIO_ACCOUNT_SID: ${env:TWILIO_ACCOUNT_SID}
+    TWILIO_AUTH_TOKEN: ${env:TWILIO_AUTH_TOKEN}
+    TWILIO_WHATSAPP_FROM: ${env:TWILIO_WHATSAPP_FROM}
 
 package:
-  indiviadually: true
+  individually: true
 
 build:
   esbuild:
-    bundle: true
-    minify: true
-    sourcemap: false
-    exclude:
-      - '@aws-sdk/*'
-    external:
-      - '@aws-sdk/*'
+    configFile: ./esbuild.config.mjs
 
 functions:
-  hello:
-    handler: src/hello.handler
+  whatsappWebhook:
+    handler: src/main/functions/whatsappWebhook.handler
     events:
       - httpApi:
-          path: /
-          method: GET
+          path: /webhooks/whatsapp
+          method: post
+  sendWhatsAppMessage:
+    handler: src/main/functions/sendWhatsAppMessage.handler
+    events:
+      - httpApi:
+          path: /messages/whatsapp
+          method: post
+
