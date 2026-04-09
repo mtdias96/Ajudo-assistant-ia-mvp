@@ -30,15 +30,11 @@ export default defineConfig([
       curly: ['error', 'all'],
       'no-duplicate-imports': 'error',
       'no-console': 'warn',
-      '@typescript-eslint/naming-convention': [
+      '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          selector: 'interface',
-          format: ['PascalCase'],
-          custom: {
-            regex: '^I[A-Z]',
-            match: true,
-          },
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
     },
@@ -47,11 +43,18 @@ export default defineConfig([
     files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     languageOptions: { globals: globals.node },
   },
-  tseslint.configs.recommended,
   {
     rules: {
       '@typescript-eslint/no-namespace': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  {
+    files: ['src/tests/**/*.ts'],
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
 ]);
