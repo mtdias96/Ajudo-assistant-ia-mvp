@@ -1,4 +1,7 @@
 import { Controller } from '@application/contracts/Controller';
+import { ApplicationError } from '@application/errors/application/ApplicationError';
+import { HandleIncomingMessage } from '@application/useCases/HandleIncomingMessage';
+import { WhatsAppGateway } from '@infrastructure/gateways/WhatsAppGateway';
 import { Injectable } from '@kernel/decorators/Injectable';
 import { Schema } from '@kernel/decorators/Schema';
 import {
@@ -8,21 +11,38 @@ import {
 
 @Injectable()
 @Schema(WhatsAppWebhookBodySchema)
-export class WhatsAppWebhookController extends Controller<'public'> {
-  protected async handle(
-    request: Controller.Request<'public'>,
-  ): Promise<Controller.Response> {
-    const message = request.body as unknown as WhatsAppWebhookBody;
-
-    // eslint-disable-next-line no-console
-    console.log('[WhatsAppWebhook] raw payload', JSON.stringify(message, null, 2));
-
-    await this.processMessage(message);
-
-    return { statusCode: 200 };
+export class WhatsAppWebhookController extends Controller<'webhook'> {
+  constructor(
+    private readonly handleIncomingMessage: HandleIncomingMessage,
+    private readonly whatsApp: WhatsAppGateway,
+  ) {
+    super();
   }
 
-  private async processMessage(_message: WhatsAppWebhookBody): Promise<void> {
-    // TODO: despachar para o use case HandleIncomingMessage.
+  protected async handle(
+    request: Controller.Request<'webhook', WhatsAppWebhookBody>,
+  ): Promise<Controller.Response> {
+    const { whatsAppId } = request;
+    const message = request.body;
+
+    if (!message.Body || !whatsAppId) {
+      // eslint-disable-next-line no-console
+      console.log('[WhatsAppWebhook] missing data from', whatsAppId);
+      return { statusCode: 200 };
+    }
+
+    try {
+      const reply = await this.handleIncomingMessage.execute(message.Body);
+      await this.whatsApp.sendText({ to: whatsAppId, text: reply });
+    } catch (error) {
+      if (error instanceof ApplicationError) {
+        await this.whatsApp.sendText({ to: whatsAppId, text: error.message });
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('[WhatsAppWebhook] unhandled error', error);
+      }
+    }
+
+    return { statusCode: 200 };
   }
 }
