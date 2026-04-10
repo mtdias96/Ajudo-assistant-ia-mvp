@@ -1,0 +1,16 @@
+# Regex pattern: type / filename: summary
+# Examples: 
+# feat / serverless.yml: update provider
+# chore / package.json: add dependency
+pattern="^(feat|fix|chore|docs|style|refactor|perf|test) \/ .+: .+"
+
+commit_msg=$(cat "$1")
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo "--------------------------------------------------------"
+  echo "❌ Erro: Formato de mensagem de commit inválido!"
+  echo "O padrão deve ser: tipo / arquivo: resumo"
+  echo "Exemplo: feat / serverless.yml: update provider"
+  echo "--------------------------------------------------------"
+  exit 1
+fi
