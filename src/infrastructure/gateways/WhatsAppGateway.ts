@@ -1,32 +1,60 @@
-import axios, { AxiosInstance } from 'axios';
+
+import { twilioClient } from '@infrastructure/clients/twilioClient';
 import { Injectable } from '@kernel/decorators/Injectable';
 import { env } from '@shared/config/env';
 
 @Injectable()
 export class WhatsAppGateway {
-  private readonly http: AxiosInstance;
+  private static readonly MAX_BODY_LENGTH = 1600;
 
-  constructor() {
-    this.http = axios.create({
-      baseURL: `https://api.twilio.com/2010-04-01/Accounts/${env.twilio.accountSid}`,
-      auth: {
-        username: env.twilio.accountSid,
-        password: env.twilio.authToken,
-      },
-      timeout: 10_000,
-    });
+  async sendText({
+    to,
+    text,
+  }: WhatsAppGateway.SendTextInput): Promise<void> {
+    const chunks = this.splitMessage(text);
+
+    for (const chunk of chunks) {
+      const params = new URLSearchParams({
+        From: this.toWhatsAppAddress(env.twilio.whatsappFrom),
+        To: this.toWhatsAppAddress(to),
+        Body: chunk,
+      });
+
+      await twilioClient.post('/Messages.json', params.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+    }
   }
 
-  async sendText(input: WhatsAppGateway.SendTextInput): Promise<void> {
-    const params = new URLSearchParams({
-      From: this.toWhatsAppAddress(env.twilio.whatsappFrom),
-      To: this.toWhatsAppAddress(input.to),
-      Body: input.text,
-    });
+  private splitMessage(text: string): string[] {
+    if (text.length <= WhatsAppGateway.MAX_BODY_LENGTH) {
+      return [text];
+    }
 
-    await this.http.post('/Messages.json', params.toString(), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
+    const chunks: string[] = [];
+    let remaining = text;
+
+    while (remaining.length > 0) {
+      if (remaining.length <= WhatsAppGateway.MAX_BODY_LENGTH) {
+        chunks.push(remaining);
+        break;
+      }
+
+      let splitIndex = remaining.lastIndexOf('\n', WhatsAppGateway.MAX_BODY_LENGTH);
+
+      if (splitIndex <= 0) {
+        splitIndex = remaining.lastIndexOf(' ', WhatsAppGateway.MAX_BODY_LENGTH);
+      }
+
+      if (splitIndex <= 0) {
+        splitIndex = WhatsAppGateway.MAX_BODY_LENGTH;
+      }
+
+      chunks.push(remaining.slice(0, splitIndex));
+      remaining = remaining.slice(splitIndex).trimStart();
+    }
+
+    return chunks;
   }
 
   private toWhatsAppAddress(value: string): string {
@@ -36,7 +64,6 @@ export class WhatsAppGateway {
 
 export namespace WhatsAppGateway {
   export type SendTextInput = {
-    /** Telefone destino em E.164 (ex: "+5513991226797"). */
     to: string;
     text: string;
   };
