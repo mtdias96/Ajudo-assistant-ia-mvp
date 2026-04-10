@@ -1,20 +1,48 @@
-# "org" ensures this Service is used with the correct Serverless Framework Access Key.
 org: wppbussnisdias
-# "service" is the name of this project. This will also be added to your AWS resource names.
+
 service: ajudo-assistant-ia
 frameworkVersion: "4"
 
+useDotenv: true
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 8080
+    lambdaPort: 8083
+    noPrependStageInUrl: true
+
 provider:
   name: aws
-  runtime: nodejs20.x
-  # Uncomment to easily set up a custom domain. Read the docs for more details:
-  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
-  # domain: api.example.com
+  region: sa-east-1
+  runtime: nodejs24.x
+  memorySize: 256
+  timeout: 10
+  logRetentionInDays: 14
+  environment:
+    TWILIO_ACCOUNT_SID: ${env:TWILIO_ACCOUNT_SID}
+    TWILIO_AUTH_TOKEN: ${env:TWILIO_AUTH_TOKEN}
+    TWILIO_WHATSAPP_FROM: ${env:TWILIO_WHATSAPP_FROM}
+    GOOGLE_CLOUD_PROJECT: ${env:GOOGLE_CLOUD_PROJECT}
+    GOOGLE_CLOUD_LOCATION: ${env:GOOGLE_CLOUD_LOCATION}
+
+package:
+  individually: true
+  patterns:
+    - 'keys/*.json'
+
+build:
+  esbuild:
+    configFile: ./esbuild.config.mjs
 
 functions:
-  hello:
-    handler: handler.hello
+  whatsappWebhook:
+    handler: src/main/functions/whatsappWebhook.handler
+    timeout: 30
     events:
       - httpApi:
-          path: /
-          method: get
+          path: /webhooks/whatsapp
+          method: post
+

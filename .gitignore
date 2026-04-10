@@ -1,2 +1,7 @@
 node_modules
 .serverless
+dist
+coverage
+.env
+.env.local
+keys/
