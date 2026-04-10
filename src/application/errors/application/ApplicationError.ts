@@ -1,12 +1,11 @@
 import { ErrorCode } from '@application/errors/ErrorCode';
 
 export class ApplicationError extends Error {
-  constructor(
-    public readonly code: ErrorCode,
-    message: string,
-    public readonly statusCode?: number,
-  ) {
+  public statusCode: number = 400;
+  public code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+
+  constructor(message?: string) {
     super(message);
-    this.name = 'ApplicationError';
+    this.name = this.constructor.name;
   }
 }
