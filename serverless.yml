@@ -5,44 +5,19 @@ frameworkVersion: "4"
 
 useDotenv: true
 
-plugins:
-  - serverless-offline
+plugins: ${file(sls/config/plugins.yml)}
 
-custom:
-  serverless-offline:
-    httpPort: 8080
-    lambdaPort: 8083
-    noPrependStageInUrl: true
+custom: ${file(sls/config/custom.yml)}
 
-provider:
-  name: aws
-  region: sa-east-1
-  runtime: nodejs24.x
-  memorySize: 256
-  timeout: 10
-  logRetentionInDays: 14
-  environment:
-    TWILIO_ACCOUNT_SID: ${env:TWILIO_ACCOUNT_SID}
-    TWILIO_AUTH_TOKEN: ${env:TWILIO_AUTH_TOKEN}
-    TWILIO_WHATSAPP_FROM: ${env:TWILIO_WHATSAPP_FROM}
-    GOOGLE_CLOUD_PROJECT: ${env:GOOGLE_CLOUD_PROJECT}
-    GOOGLE_CLOUD_LOCATION: ${env:GOOGLE_CLOUD_LOCATION}
+provider: ${file(sls/config/provider.yml)}
 
-package:
-  individually: true
-  patterns:
-    - 'keys/*.json'
+package: ${file(sls/config/package.yml)}
 
 build:
   esbuild:
     configFile: ./esbuild.config.mjs
 
 functions:
-  whatsappWebhook:
-    handler: src/main/functions/whatsappWebhook.handler
-    timeout: 30
-    events:
-      - httpApi:
-          path: /webhooks/whatsapp
-          method: post
+  whatsappWebhook: ${file(sls/functions/whatsappWebhook.yml)}
 
+resources: ${file(sls/resources/MainTable.yml)}
