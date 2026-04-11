@@ -1,5 +1,5 @@
 
-import { vertexai } from '@infrastructure/clients/geminiClient';
+import { vertexai } from '@infrastructure/clients/ia/geminiClient';
 import { Injectable } from '@kernel/decorators/Injectable';
 
 @Injectable()

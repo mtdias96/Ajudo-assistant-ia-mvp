@@ -1,0 +1,6 @@
+handler: src/main/functions/whatsappWebhook.handler
+timeout: 30
+events:
+  - httpApi:
+      path: /webhooks/whatsapp
+      method: post

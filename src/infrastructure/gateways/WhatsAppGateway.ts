@@ -1,5 +1,5 @@
 
-import { twilioClient } from '@infrastructure/clients/twilioClient';
+import { twilioClient } from '@infrastructure/clients/channels/twilioClient';
 import { Injectable } from '@kernel/decorators/Injectable';
 import { env } from '@shared/config/env';
 
@@ -15,7 +15,7 @@ export class WhatsAppGateway {
 
     for (const chunk of chunks) {
       const params = new URLSearchParams({
-        From: this.toWhatsAppAddress(env.twilio.whatsappFrom),
+        From: this.toWhatsAppAddress(env.TWILIO_WHATSAPP_FROM),
         To: this.toWhatsAppAddress(to),
         Body: chunk,
       });

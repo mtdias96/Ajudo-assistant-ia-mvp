@@ -1,6 +1,6 @@
 import { Controller } from '@application/contracts/Controller';
-import { ApplicationError } from '@application/errors/application/ApplicationError';
 import { HandleIncomingMessage } from '@application/useCases/HandleIncomingMessage';
+import { IdentifyWhatsAppAccount } from '@application/useCases/IdentifyWhatsAppAccount';
 import { WhatsAppGateway } from '@infrastructure/gateways/WhatsAppGateway';
 import { Injectable } from '@kernel/decorators/Injectable';
 import { Schema } from '@kernel/decorators/Schema';
@@ -13,6 +13,7 @@ import {
 @Schema(WhatsAppWebhookBodySchema)
 export class WhatsAppWebhookController extends Controller<'webhook'> {
   constructor(
+    private readonly identifyWhatsAppAccount: IdentifyWhatsAppAccount,
     private readonly handleIncomingMessage: HandleIncomingMessage,
     private readonly whatsApp: WhatsAppGateway,
   ) {
@@ -26,22 +27,13 @@ export class WhatsAppWebhookController extends Controller<'webhook'> {
     const message = request.body;
 
     if (!message.Body || !whatsAppId) {
-      // eslint-disable-next-line no-console
-      console.log('[WhatsAppWebhook] missing data from', whatsAppId);
       return { statusCode: 200 };
     }
 
-    try {
-      const reply = await this.handleIncomingMessage.execute(message.Body);
-      await this.whatsApp.sendText({ to: whatsAppId, text: reply });
-    } catch (error) {
-      if (error instanceof ApplicationError) {
-        await this.whatsApp.sendText({ to: whatsAppId, text: error.message });
-      } else {
-        // eslint-disable-next-line no-console
-        console.error('[WhatsAppWebhook] unhandled error', error);
-      }
-    }
+    await this.identifyWhatsAppAccount.execute(whatsAppId);
+
+    const reply = await this.handleIncomingMessage.execute(message.Body);
+    await this.whatsApp.sendText({ to: whatsAppId, text: reply });
 
     return { statusCode: 200 };
   }
