@@ -1,19 +1,17 @@
-function required(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`Missing required env var: ${key}`);
-  }
-  return value;
-}
+import { z } from 'zod';
 
-export const env = {
-  twilio: {
-    get accountSid(): string { return required('TWILIO_ACCOUNT_SID'); },
-    get authToken(): string { return required('TWILIO_AUTH_TOKEN'); },
-    get whatsappFrom(): string { return required('TWILIO_WHATSAPP_FROM'); },
-  },
-  vertexai: {
-    get project(): string { return required('GOOGLE_CLOUD_PROJECT'); },
-    get location(): string { return required('GOOGLE_CLOUD_LOCATION'); },
-  },
-};
+const schema = z.object({
+  // Twilio
+  TWILIO_ACCOUNT_SID: z.string().min(1),
+  TWILIO_AUTH_TOKEN: z.string().min(1),
+  TWILIO_WHATSAPP_FROM: z.string().min(1),
+
+  // Google Cloud
+  GOOGLE_CLOUD_PROJECT: z.string().min(1),
+  GOOGLE_CLOUD_LOCATION: z.string().min(1),
+
+  // Database
+  MAIN_TABLE_NAME: z.string().min(1),
+});
+
+export const env = schema.parse(process.env);
