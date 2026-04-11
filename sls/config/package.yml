@@ -1,0 +1,3 @@
+individually: true
+patterns:
+  - 'keys/*.json'
