@@ -1,0 +1,22 @@
+name: aws
+stage: ${opt:stage, 'dev'}
+region: sa-east-1
+runtime: nodejs24.x
+memorySize: 256
+timeout: 10
+logRetentionInDays: 14
+environment: ${file(sls/config/env.yml)}
+iam:
+  role:
+    statements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+          - dynamodb:DeleteItem
+          - dynamodb:TransactWriteItems
+        Resource:
+          - Fn::GetAtt: [MainTable, Arn]
+          - Fn::Sub: "${MainTable.Arn}/index/*"
