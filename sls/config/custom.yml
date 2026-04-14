@@ -1,0 +1,4 @@
+serverless-offline:
+  httpPort: 8080
+  lambdaPort: 8083
+  noPrependStageInUrl: true
