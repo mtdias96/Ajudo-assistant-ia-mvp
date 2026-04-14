@@ -2,13 +2,17 @@ import { AiParseError } from '@application/errors/application/AiParseError';
 import { AiGateway } from '@infrastructure/gateways/AiGateway';
 import { Injectable } from '@kernel/decorators/Injectable';
 
+import { EDIT_LAST_MEAL_PROMPT } from './prompts/editLastMeal';
 import { EXTRACT_INTENT_PROMPT } from './prompts/extractIntent';
 import { NUTRITION_IMAGE_PROMPT } from './prompts/nutritionPrompt';
 import { ONBOARDING_PROMPT } from './prompts/onboardingPrompt';
+import { RESOLVE_PENDING_MEAL_PROMPT } from './prompts/resolvePendingMeal';
+import { EditLastMealResolution } from './types/EditLastMealResolution';
 import { ExtractedIntent } from './types/ExtractedIntent';
 import { INTENT_MODEL_MAP, MODEL_TIERS, ModelTier } from './types/ModelTier';
 import { NutritionResult } from './types/NutritionResult';
 import type { OnboardingResult } from './types/OnboardingResult';
+import { PendingResolutionIntent } from './types/PendingResolutionIntent';
 
 @Injectable()
 export class AiService {
@@ -40,6 +44,46 @@ export class AiService {
     });
 
     return this.parseJson<NutritionResult>(result.content);
+  }
+
+  async resolvePendingMeal(
+    input: AiService.ResolvePendingMealInput,
+  ): Promise<PendingResolutionIntent> {
+    const config = this.resolveModel('nutrition');
+    const systemPrompt = RESOLVE_PENDING_MEAL_PROMPT.replace(
+      '{{pending}}',
+      JSON.stringify(input.pending),
+    );
+
+    const result = await this.ai.chat({
+      ...config,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: input.message },
+      ],
+    });
+
+    return this.parseJson<PendingResolutionIntent>(result.content);
+  }
+
+  async editLastMeal(
+    input: AiService.EditLastMealInput,
+  ): Promise<EditLastMealResolution> {
+    const config = this.resolveModel('nutrition');
+    const systemPrompt = EDIT_LAST_MEAL_PROMPT.replace(
+      '{{lastMeal}}',
+      JSON.stringify(input.lastMeal),
+    );
+
+    const result = await this.ai.chat({
+      ...config,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: input.message },
+      ],
+    });
+
+    return this.parseJson<EditLastMealResolution>(result.content);
   }
 
   async collectProfileData(
@@ -105,5 +149,28 @@ export namespace AiService {
   export type NutritionImageInput = {
     mimeType: string;
     base64: string;
+  };
+
+  export type PendingMealSnapshot = {
+    name: string;
+    items: {
+      name: string;
+      quantity: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    }[];
+  };
+
+  export type ResolvePendingMealInput = {
+    pending: PendingMealSnapshot;
+    message: string;
+  };
+
+  export type EditLastMealInput = {
+    lastMeal: PendingMealSnapshot;
+    message: string;
   };
 }
