@@ -7,7 +7,7 @@ export class Profile {
   height?: number;
   weight?: number;
   activityLevel?: Profile.ActivityLevel;
-  goalType?: Profile.GoalType;
+  goalType?: Profile.Goal;
   onboardingCompleted?: boolean;
   readonly createdAt: Date;
 
@@ -24,8 +24,8 @@ export class Profile {
     this.createdAt = attr.createdAt ?? new Date();
   }
 
-  isComplete(): boolean {
-    return this.onboardingCompleted === true;
+  isComplete(): this is CompleteProfile {
+    return this.onboardingCompleted === true && this.hasAllFields();
   }
 
   hasAllFields(): boolean {
@@ -41,6 +41,17 @@ export class Profile {
   }
 }
 
+export interface CompleteProfile extends Profile {
+  name: string;
+  birthDate: Date;
+  gender: Profile.Gender;
+  height: number;
+  weight: number;
+  activityLevel: Profile.ActivityLevel;
+  goalType: Profile.Goal;
+  onboardingCompleted: true;
+}
+
 export namespace Profile {
   export type Attributes = {
     accountId: string;
@@ -50,7 +61,7 @@ export namespace Profile {
     height?: number;
     weight?: number;
     activityLevel?: ActivityLevel;
-    goalType?: GoalType;
+    goalType?: Goal;
     onboardingCompleted?: boolean;
     createdAt?: Date;
   };
@@ -60,6 +71,12 @@ export namespace Profile {
     FAMALE = 'FEMALE',
   }
 
+  export enum Goal {
+    LOSE = 'LOSE',
+    MAINTAIN = 'MAINTAIN',
+    GAIN = 'GAIN'
+  }
+
   export enum ActivityLevel {
     SEDENTARY = 'SEDENTARY',
     LIGHT = 'LIGHT',
@@ -67,7 +84,5 @@ export namespace Profile {
     HEAVY = 'HEAVY',
     ATHLETE = 'ATHLETE',
   }
-
-  export type GoalType = 'maintain' | 'gain' | 'lose';
 }
 
