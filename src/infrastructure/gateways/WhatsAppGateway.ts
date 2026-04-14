@@ -1,3 +1,4 @@
+import axios from 'axios';
 
 import { twilioClient } from '@infrastructure/clients/channels/twilioClient';
 import { Injectable } from '@kernel/decorators/Injectable';
@@ -24,6 +25,33 @@ export class WhatsAppGateway {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
     }
+  }
+
+  async fetchMedia(url: string): Promise<WhatsAppGateway.FetchMediaResult> {
+    const redirect = await twilioClient.get(url, {
+      maxRedirects: 0,
+      validateStatus: (status) => status >= 200 && status < 400,
+      responseType: 'arraybuffer',
+    });
+
+    const location = redirect.headers.location as string | undefined;
+
+    if (!location) {
+      const buffer = Buffer.from(redirect.data as ArrayBuffer);
+      return {
+        buffer,
+        contentType: String(redirect.headers['content-type'] ?? ''),
+      };
+    }
+
+    const file = await axios.get<ArrayBuffer>(location, {
+      responseType: 'arraybuffer',
+    });
+
+    return {
+      buffer: Buffer.from(file.data),
+      contentType: String(file.headers['content-type'] ?? ''),
+    };
   }
 
   private splitMessage(text: string): string[] {
@@ -66,5 +94,10 @@ export namespace WhatsAppGateway {
   export type SendTextInput = {
     to: string;
     text: string;
+  };
+
+  export type FetchMediaResult = {
+    buffer: Buffer;
+    contentType: string;
   };
 }

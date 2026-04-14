@@ -13,6 +13,8 @@ export const WhatsAppWebhookBodySchema = z.looseObject({
   ProfileName: z.string().optional(),
   WaId: z.string().optional(),
   NumMedia: z.string().optional(),
+  MediaUrl0: z.url().optional(),
+  MediaContentType0: z.string().optional(),
 });
 
 export type WhatsAppWebhookBody = z.infer<typeof WhatsAppWebhookBodySchema>;

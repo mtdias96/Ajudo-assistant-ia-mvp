@@ -8,5 +8,5 @@ export const twilioClient = axios.create({
     username: env.TWILIO_ACCOUNT_SID,
     password: env.TWILIO_AUTH_TOKEN,
   },
-  timeout: 10_000,
+  timeout: 15000,
 });

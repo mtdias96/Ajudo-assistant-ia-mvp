@@ -1,7 +1,5 @@
 import { Controller } from '@application/contracts/Controller';
-import { HandleIncomingMessage } from '@application/useCases/HandleIncomingMessage';
-import { IdentifyWhatsAppAccount } from '@application/useCases/IdentifyWhatsAppAccount';
-import { WhatsAppGateway } from '@infrastructure/gateways/WhatsAppGateway';
+import { ProcessWhatsAppMessageUseCase } from '@application/useCases/messaging/ProcessWhatsAppMessageUseCase';
 import { Injectable } from '@kernel/decorators/Injectable';
 import { Schema } from '@kernel/decorators/Schema';
 import {
@@ -13,9 +11,7 @@ import {
 @Schema(WhatsAppWebhookBodySchema)
 export class WhatsAppWebhookController extends Controller<'webhook'> {
   constructor(
-    private readonly identifyWhatsAppAccount: IdentifyWhatsAppAccount,
-    private readonly handleIncomingMessage: HandleIncomingMessage,
-    private readonly whatsApp: WhatsAppGateway,
+    private readonly processWhatsAppMessage: ProcessWhatsAppMessageUseCase,
   ) {
     super();
   }
@@ -23,17 +19,14 @@ export class WhatsAppWebhookController extends Controller<'webhook'> {
   protected async handle(
     request: Controller.Request<'webhook', WhatsAppWebhookBody>,
   ): Promise<Controller.Response> {
-    const { whatsAppId } = request;
-    const message = request.body;
+    const { whatsAppId, body } = request;
 
-    if (!message.Body || !whatsAppId) {
-      return { statusCode: 200 };
-    }
-
-    await this.identifyWhatsAppAccount.execute(whatsAppId);
-
-    const reply = await this.handleIncomingMessage.execute(message.Body);
-    await this.whatsApp.sendText({ to: whatsAppId, text: reply });
+    // O Controller age apenas como tradutor e delegador,
+    //Vamos colocaríamos na fila aqui.
+    await this.processWhatsAppMessage.execute({
+      whatsAppId: whatsAppId ?? '',
+      message: body,
+    });
 
     return { statusCode: 200 };
   }

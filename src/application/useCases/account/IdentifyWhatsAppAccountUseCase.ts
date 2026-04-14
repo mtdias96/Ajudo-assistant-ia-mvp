@@ -4,7 +4,7 @@ import { AccountRepository } from '@infrastructure/database/dynamo/repositories/
 import { Injectable } from '@kernel/decorators/Injectable';
 
 @Injectable()
-export class IdentifyWhatsAppAccount {
+export class IdentifyWhatsAppAccountUseCase {
   constructor(private readonly accountRepository: AccountRepository) { }
 
   async execute(phone: string): Promise<Account> {
