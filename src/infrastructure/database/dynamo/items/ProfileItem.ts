@@ -2,14 +2,14 @@ import { Profile } from '@application/entities/Profile';
 import { AccountItem } from './AccountItem';
 
 export class ProfileItem {
-  private readonly type = 'Profile';
+  static readonly type = 'Profile';
 
   private readonly keys: ProfileItem.Keys;
 
-  constructor(private readonly attr: ProfileItem.Attributes) {
+  constructor(private readonly attrs: ProfileItem.Attributes) {
     this.keys = {
-      PK: ProfileItem.getPK(this.attr.accountId),
-      SK: ProfileItem.getSK(this.attr.accountId),
+      PK: ProfileItem.getPK(this.attrs.accountId),
+      SK: ProfileItem.getSK(this.attrs.accountId),
     };
   }
 
@@ -32,11 +32,11 @@ export class ProfileItem {
     return new Profile({
       accountId: item.accountId,
       name: item.name,
-      gender: item.gender,
+      gender: item.gender as Profile.Gender | undefined,
       height: item.height,
       weight: item.weight,
-      activityLevel: item.activityLevel,
-      goalType: item.goalType,
+      activityLevel: item.activityLevel as Profile.ActivityLevel | undefined,
+      goalType: item.goalType as Profile.Goal | undefined,
       onboardingCompleted: item.onboardingCompleted,
       birthDate: item.birthDate ? new Date(item.birthDate) : undefined,
       createdAt: new Date(item.createdAt),
@@ -46,8 +46,8 @@ export class ProfileItem {
   toItem(): ProfileItem.ItemType {
     return {
       ...this.keys,
-      ...this.attr,
-      type: this.type,
+      ...this.attrs,
+      type: ProfileItem.type,
     };
   }
 
@@ -74,7 +74,7 @@ export namespace ProfileItem {
     height?: number;
     weight?: number;
     activityLevel?: Profile.ActivityLevel;
-    goalType?: Profile.GoalType;
+    goalType?: Profile.Goal;
     onboardingCompleted?: boolean;
     createdAt: string;
   };
