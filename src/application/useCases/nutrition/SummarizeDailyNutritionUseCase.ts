@@ -3,7 +3,6 @@ import { CompleteProfile } from '@application/entities/Profile';
 import { GoalCalculator } from '@application/services/nutrition/GoalCalculator';
 import { MealRepository } from '@infrastructure/database/dynamo/repositories/MealRepository';
 import { Injectable } from '@kernel/decorators/Injectable';
-import { DateUtils } from '@shared/utils/DateUtils';
 import { NutritionFormatter } from '@application/services/formatters/NutritionFormatter';
 
 @Injectable()
@@ -16,7 +15,7 @@ export class SummarizeDailyNutritionUseCase {
   ) { }
 
   async execute(profile: CompleteProfile): Promise<string> {
-    const today = DateUtils.getSaoPauloDate();
+    const today = new Date();
     const allMeals = await this.mealRepository.findMealsByAccountIdAndDate(profile.accountId, today);
     const meals = allMeals.filter(meal => meal.status === Meal.Status.PROCESSED);
 
