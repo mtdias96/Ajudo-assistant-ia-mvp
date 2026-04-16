@@ -3,7 +3,7 @@
  * Cada tier define modelo, temperatura e limite de tokens.
  * Adicione novos tiers conforme necessidade (ex: "pro" para PDFs/contratos).
  */
-export type ModelTier = 'lite' | 'standard';
+export type ModelTier = 'lite' | 'standard' | 'pro';
 
 type ModelConfig = {
   model: string;
@@ -22,11 +22,11 @@ export const MODEL_TIERS: Record<ModelTier, ModelConfig> = {
     temperature: 0,
     maxOutputTokens: 4096,
   },
-  // pro: {
-  //   model: 'gemini-1.5-pro',
-  //   temperature: 0,
-  //   maxOutputTokens: 4096,
-  // },
+  pro: {
+    model: 'gemini-2.5-pro',
+    temperature: 0,
+    maxOutputTokens: 4096,
+  },
 };
 
 /**
@@ -36,6 +36,7 @@ export const MODEL_TIERS: Record<ModelTier, ModelConfig> = {
 export const INTENT_MODEL_MAP: Record<string, ModelTier> = {
   extraction: 'standard',
   nutrition: 'standard',
+  nutrition_visual: 'pro',
   unknown: 'lite',
   // schedule: 'standard',
   // finance: 'standard',

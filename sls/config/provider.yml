@@ -3,7 +3,7 @@ stage: ${opt:stage, 'dev'}
 region: sa-east-1
 runtime: nodejs24.x
 memorySize: 256
-timeout: 10
+timeout: 20
 logRetentionInDays: 14
 environment: ${file(sls/config/env.yml)}
 iam:

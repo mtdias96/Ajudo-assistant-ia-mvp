@@ -19,8 +19,26 @@ export type SummaryIntent = {
   message: string;
 };
 
-export type EditLastMealIntent = {
-  intent: 'edit_last_meal';
+export enum EditMealOperation {
+  DELETE_MEAL = 'DELETE_MEAL',
+  DELETE_FOOD = 'DELETE_FOOD',
+  UPDATE_FOOD = 'UPDATE_FOOD',
+  SWAP_FOOD = 'SWAP_FOOD',
+  MOVE_MEAL = 'MOVE_MEAL',
+}
+
+export type EditMealTarget = {
+  category: Meal.Category | null;
+  mealIndex: number | null;
+  foodName: string | null;
+};
+
+export type EditMealIntent = {
+  intent: 'edit_meal';
+  operation: EditMealOperation;
+  target: EditMealTarget;
+  change: NutritionItem | null;
+  destinationCategory: Meal.Category | null;
   message: string;
 };
 
@@ -28,4 +46,4 @@ export type ExtractedIntent =
   | NutritionIntent
   | SummaryIntent
   | UnknownIntent
-  | EditLastMealIntent;
+  | EditMealIntent;

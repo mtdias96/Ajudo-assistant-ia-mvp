@@ -1,24 +1,97 @@
 import { Meal } from '@application/entities/Meal';
 import { GoalCalculator } from '@application/services/nutrition/GoalCalculator';
 import { MealCategoryResolver } from '@application/services/nutrition/MealCategoryResolver';
+import { MealIndexResolver } from '@application/services/nutrition/MealIndexResolver';
+import { EditMealTarget } from '@application/services/types/ExtractedIntent';
 import { Injectable } from '@kernel/decorators/Injectable';
+import { DateUtils } from '@shared/utils/DateUtils';
 
 @Injectable()
 export class NutritionFormatter {
-  constructor(private readonly mealCategoryResolver: MealCategoryResolver) { }
+  private static readonly NUMBER_LABELS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
 
-  formatDraft(meal: Meal, metrics: GoalCalculator.CalculateGoalResult): string {
+  constructor(
+    private readonly mealCategoryResolver: MealCategoryResolver,
+    private readonly mealIndexResolver: MealIndexResolver,
+  ) { }
+
+  formatMealLabel(meal: Meal, meals: Meal[]): string {
+    const categoryLabel = this.mealCategoryResolver.label(meal.category);
+    const { index, total } = this.mealIndexResolver.positionInCategory(meals, meal);
+
+    if (total <= 1 || index === null) {
+      return categoryLabel;
+    }
+
+    return `${categoryLabel} #${index}`;
+  }
+
+  formatMealMoved(fromLabel: string, destination: Meal.Category): string {
+    const toLabel = this.mealCategoryResolver.label(destination);
+    return `✅ Movi: *${fromLabel}* → *${toLabel}*`;
+  }
+
+  formatMealDeleted(mealLabel: string): string {
+    return `🗑 Removi: *${mealLabel}*`;
+  }
+
+  formatFoodDeleted(foodName: string, mealLabel: string): string {
+    return `🗑 Removi: *${foodName}* (${mealLabel})`;
+  }
+
+  formatFoodReplaced(
+    verb: string,
+    previous: Meal.Food,
+    next: Meal.Food,
+    mealLabel: string,
+  ): string {
+    return `✅ ${verb}: *${previous.name}* → *${next.name}* (${next.quantity}) em ${mealLabel}`;
+  }
+
+  formatMealNotFound(target: EditMealTarget): string {
+    if (target.category === null) {
+      return 'Não encontrei nenhuma refeição registrada hoje pra editar.';
+    }
+
+    const label = this.mealCategoryResolver.label(target.category);
+    if (target.mealIndex !== null) {
+      return `Não encontrei a refeição #${target.mealIndex} de ${label} hoje.`;
+    }
+
+    return `Não encontrei nenhuma refeição de ${label} hoje.`;
+  }
+
+  formatMealAlreadyInCategory(destination: Meal.Category): string {
+    return `Essa refeição já está em ${this.mealCategoryResolver.label(destination)}.`;
+  }
+
+  formatFoodNotFound(foodName: string, mealLabel: string): string {
+    return `Não achei "${foodName}" em ${mealLabel}.`;
+  }
+
+  formatDraft(
+    meal: Meal,
+    metrics: GoalCalculator.CalculateGoalResult,
+    consumedBefore: NutritionFormatter.Totals = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+  ): string {
     const items = meal.foods.map(
       (food) =>
         `${food.name} (${food.quantity})\n` +
         `↳ ${food.calories} kcal | P${food.protein} C${food.carbs} G${food.fat} F${food.fiber}`,
     );
 
-    const totals = this.totals(meal);
+    const mealTotals = this.totals(meal);
+    const totals = {
+      calories: mealTotals.calories + consumedBefore.calories,
+      protein: mealTotals.protein + consumedBefore.protein,
+      carbs: mealTotals.carbs + consumedBefore.carbs,
+      fat: mealTotals.fat + consumedBefore.fat,
+      fiber: mealTotals.fiber + consumedBefore.fiber,
+    };
 
     const macros =
       '━━━━━━━━━━━━━━\n\n' +
-      '📊 *Totais da Refeição*\n' +
+      '📊 *Totais do Dia*\n' +
       this.row('🔥', 'Calorias', totals.calories, metrics.calories, ' kcal') + '\n' +
       this.row('🥩', 'Proteína', totals.protein, metrics.proteins, 'g') + '\n' +
       this.row('🍞', 'Carboidratos', totals.carbs, metrics.carbohydrates, 'g') + '\n' +
@@ -106,17 +179,45 @@ export class NutritionFormatter {
       const bucket = byCategory.get(category);
       if (!bucket || bucket.length === 0) { continue; }
 
+      bucket.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
       const icon = this.mealCategoryResolver.icon(category);
       const label = this.mealCategoryResolver.label(category);
-      const items = bucket
-        .flatMap(meal => meal.foods)
-        .map(food => `  • ${food.name} (${food.quantity})`)
-        .join('\n');
+      const body = bucket.length === 1
+        ? this.formatSingleMeal(bucket[0])
+        : bucket
+          .map((meal, index) => this.formatNumberedMeal(meal, index + 1))
+          .join('\n\n');
 
-      sections.push(`${icon} *${label}*\n${items}`);
+      sections.push(`${icon} *${label}*\n${body}`);
     }
 
-    return sections.length > 0 ? `${sections.join('\n\n')}\n\n` : '';
+    return sections.length > 0 ? `${sections.join('\n\n━━━━━━━━━━━━━━\n\n')}\n\n` : '';
+  }
+
+  private formatNumberedMeal(meal: Meal, position: number): string {
+    const label = NutritionFormatter.NUMBER_LABELS[position - 1] ?? `#${position}`;
+    const header = `  ${label} *${this.formatTime(meal.createdAt)}*`;
+    const items = meal.foods
+      .map(food => `     • ${food.name} (${food.quantity})`)
+      .join('\n');
+
+    return `${header}\n${items}`;
+  }
+
+  private formatSingleMeal(meal: Meal): string {
+    const header = `  🕐 *${this.formatTime(meal.createdAt)}*`;
+    const items = meal.foods
+      .map(food => `     • ${food.name} (${food.quantity})`)
+      .join('\n');
+
+    return `${header}\n${items}`;
+  }
+
+  private formatTime(date: Date): string {
+    const h = DateUtils.getSaoPauloHours(date).toString().padStart(2, '0');
+    const m = DateUtils.getSaoPauloMinutes(date).toString().padStart(2, '0');
+    return `${h}:${m}`;
   }
 
   private formatSummaryBody(totals: { calories: number; protein: number; carbs: number; fat: number; fiber: number }, goalMetrics: GoalCalculator.CalculateGoalResult): string {
@@ -153,4 +254,14 @@ export class NutritionFormatter {
     const remains = size - completed;
     return '`[' + '■'.repeat(completed) + '□'.repeat(remains) + ']`';
   }
+}
+
+export namespace NutritionFormatter {
+  export type Totals = {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
 }

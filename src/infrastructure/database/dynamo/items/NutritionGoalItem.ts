@@ -23,6 +23,7 @@ export class NutritionGoalItem {
       fats: goal.fats,
       fiber: goal.fiber,
       water: goal.water,
+      profileHash: goal.profileHash,
       createdAt: goal.createdAt.toISOString(),
     });
   }
@@ -37,6 +38,7 @@ export class NutritionGoalItem {
       fats: item.fats,
       fiber: item.fiber,
       water: item.water,
+      profileHash: item.profileHash ?? '',
       createdAt: new Date(item.createdAt),
     });
   }
@@ -73,6 +75,7 @@ export namespace NutritionGoalItem {
     fats: number
     fiber?: number
     water?: number
+    profileHash: string
     createdAt: string
   }
 
