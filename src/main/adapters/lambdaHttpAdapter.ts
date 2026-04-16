@@ -44,6 +44,9 @@ export function lambdaHttpAdapter(controllerImpl: Constructor<Controller<any, un
         body: response.body ? JSON.stringify(response.body) : undefined,
       };
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error);
+
       if (error instanceof ZodError) {
         return lambdaErrorResponse({
           statusCode: 400,
@@ -66,9 +69,6 @@ export function lambdaHttpAdapter(controllerImpl: Constructor<Controller<any, un
           message: error.message,
         });
       }
-
-      // eslint-disable-next-line no-console
-      console.log(error);
 
       return lambdaErrorResponse({
         statusCode: 500,
