@@ -13,7 +13,8 @@
     "prepare": "husky || true",
     "dev": "dotenv -e .env.local -- sls offline",
     "localstack:up": "docker compose up -d",
-    "localstack:down": "docker compose down"
+    "localstack:down": "docker compose down",
+    "seed:nutrition": "dotenv -e .env -e .env.local -- tsx scripts/seed-nutrition-knowledge.ts"
   },
   "lint-staged": {
     "src/**/*.ts": [
@@ -52,8 +53,9 @@
     "@aws-sdk/client-ssm": "^3.1026.0",
     "@aws-sdk/lib-dynamodb": "^3.1026.0",
     "@google-cloud/vertexai": "^1.11.0",
-    "@google/generative-ai": "^0.24.1",
+    "@qdrant/js-client-rest": "^1.17.0",
     "axios": "^1.14.0",
+    "google-auth-library": "^10.6.2",
     "ksuid": "^3.0.0",
     "openai": "^6.34.0",
     "pino": "^10.3.1",
