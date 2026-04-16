@@ -13,6 +13,7 @@ export class CollectProfileDataUseCase {
     private readonly aiService: AiService,
     private readonly profileRepository: ProfileRepository,
     private readonly nutritionGoalRepository: NutritionGoalRepository,
+    private readonly goalCalculator: GoalCalculator,
   ) { }
 
   async execute(input: CollectProfileDataUseCase.Input): Promise<string> {
@@ -38,7 +39,7 @@ export class CollectProfileDataUseCase {
       await this.profileRepository.save(existing);
 
       const profileComplete = existing as CompleteProfile;
-      const goalMetrics = GoalCalculator.calculate(profileComplete);
+      const goalMetrics = this.goalCalculator.calculate(profileComplete);
 
       const nutritionGoal = new NutritionGoal({
         accountId: profileComplete.accountId,
@@ -47,8 +48,9 @@ export class CollectProfileDataUseCase {
         proteins: goalMetrics.proteins,
         carbohydrates: goalMetrics.carbohydrates,
         fats: goalMetrics.fats,
+        profileHash: NutritionGoal.hashProfile(profileComplete),
       });
-      await this.nutritionGoalRepository.create(nutritionGoal);
+      await this.nutritionGoalRepository.save(nutritionGoal);
 
       return (
         '✅ *Perfil salvo com sucesso!*\n\n' +

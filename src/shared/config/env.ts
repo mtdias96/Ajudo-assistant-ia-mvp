@@ -12,6 +12,14 @@ const schema = z.object({
 
   // Database
   MAIN_TABLE_NAME: z.string().min(1),
+
+  // Qdrant
+  QDRANT_URL: z.string().url(),
+  QDRANT_API_KEY: z.string().min(1),
+  QDRANT_NUTRITION_COLLECTION: z.string().min(1).default('nutrition_taco'),
+
+  // Vertex AI (embeddings)
+  VERTEX_EMBEDDING_MODEL: z.string().min(1).default('text-multilingual-embedding-002'),
 });
 
 export const env = schema.parse(process.env);

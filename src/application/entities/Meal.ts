@@ -64,10 +64,17 @@ export namespace Meal {
   export type Food = {
     name: string;
     quantity: string;
+    quantityGrams?: number;
+    source?: FoodSource;
     calories: number;
     protein: number;
     carbs: number;
     fat: number;
     fiber: number;
   };
+
+  export enum FoodSource {
+    TACO = 'TACO',
+    ESTIMATED = 'ESTIMATED',
+  }
 }

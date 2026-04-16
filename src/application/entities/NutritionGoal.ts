@@ -1,4 +1,7 @@
-// nutrition-goal.ts
+import { createHash } from 'node:crypto';
+
+import { CompleteProfile } from './Profile';
+
 export class NutritionGoal {
   readonly accountId: string;
   tdee: number;
@@ -8,6 +11,7 @@ export class NutritionGoal {
   fats: number;
   fiber?: number;
   water?: number;
+  profileHash: string;
   readonly createdAt: Date;
 
   constructor(attr: NutritionGoal.Props) {
@@ -19,7 +23,21 @@ export class NutritionGoal {
     this.fats = attr.fats;
     this.fiber = attr.fiber;
     this.water = attr.water;
+    this.profileHash = attr.profileHash;
     this.createdAt = attr.createdAt ?? new Date();
+  }
+
+  static hashProfile(profile: CompleteProfile): string {
+    const signature = [
+      profile.weight,
+      profile.height,
+      profile.birthDate.toISOString(),
+      profile.gender,
+      profile.activityLevel,
+      profile.goalType,
+    ].join('|');
+
+    return createHash('sha1').update(signature).digest('hex');
   }
 }
 
@@ -33,6 +51,7 @@ export namespace NutritionGoal {
     fats: number
     fiber?: number
     water?: number
+    profileHash: string
     createdAt?: Date
   }
 }

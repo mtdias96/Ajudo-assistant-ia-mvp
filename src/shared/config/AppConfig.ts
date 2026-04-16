@@ -9,6 +9,8 @@ export class AppConfig {
 
   readonly db: AppConfig.Database;
 
+  readonly qdrant: AppConfig.Qdrant;
+
   constructor() {
     this.twilio = {
       accountSid: env.TWILIO_ACCOUNT_SID,
@@ -19,6 +21,7 @@ export class AppConfig {
     this.vertexai = {
       project: env.GOOGLE_CLOUD_PROJECT,
       location: env.GOOGLE_CLOUD_LOCATION,
+      embeddingModel: env.VERTEX_EMBEDDING_MODEL,
     };
 
     this.db = {
@@ -26,6 +29,15 @@ export class AppConfig {
         mainTable: env.MAIN_TABLE_NAME,
       },
     };
+
+    this.qdrant = {
+      url: env.QDRANT_URL,
+      apiKey: env.QDRANT_API_KEY,
+      collections: {
+        nutrition: env.QDRANT_NUTRITION_COLLECTION,
+      },
+    };
+
   }
 }
 
@@ -39,11 +51,20 @@ export namespace AppConfig {
   export type VertexAI = {
     project: string;
     location: string;
+    embeddingModel: string;
   };
 
   export type Database = {
     dynamodb: {
       mainTable: string;
+    };
+  };
+
+  export type Qdrant = {
+    url: string;
+    apiKey: string;
+    collections: {
+      nutrition: string;
     };
   };
 }

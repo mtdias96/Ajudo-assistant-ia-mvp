@@ -1,9 +1,4 @@
 export class DateUtils {
-  static getSaoPauloDate(date: Date = new Date()): Date {
-    // Retorna um objeto Date ajustado para o fuso de SP
-    return new Date(date.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-  }
-
   static getSaoPauloHours(date: Date = new Date()): number {
     return DateUtils.getSaoPauloTimePart(date, 'hour');
   }
