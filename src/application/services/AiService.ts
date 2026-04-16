@@ -2,12 +2,11 @@ import { AiParseError } from '@application/errors/application/AiParseError';
 import { AiGateway } from '@infrastructure/gateways/AiGateway';
 import { Injectable } from '@kernel/decorators/Injectable';
 
-import { EDIT_LAST_MEAL_PROMPT } from './prompts/editLastMeal';
 import { EXTRACT_INTENT_PROMPT } from './prompts/extractIntent';
 import { NUTRITION_IMAGE_PROMPT } from './prompts/nutritionPrompt';
 import { ONBOARDING_PROMPT } from './prompts/onboardingPrompt';
+import { RERANK_NUTRITION_MATCH_PROMPT } from './prompts/rerankNutritionMatch';
 import { RESOLVE_PENDING_MEAL_PROMPT } from './prompts/resolvePendingMeal';
-import { EditLastMealResolution } from './types/EditLastMealResolution';
 import { ExtractedIntent } from './types/ExtractedIntent';
 import { INTENT_MODEL_MAP, MODEL_TIERS, ModelTier } from './types/ModelTier';
 import { NutritionResult } from './types/NutritionResult';
@@ -35,7 +34,7 @@ export class AiService {
   async analyzeNutritionImage(
     image: AiService.NutritionImageInput,
   ): Promise<NutritionResult> {
-    const config = this.resolveModel('nutrition');
+    const config = this.resolveModel('nutrition_visual');
 
     const result = await this.ai.analyzeImage({
       ...config,
@@ -66,24 +65,34 @@ export class AiService {
     return this.parseJson<PendingResolutionIntent>(result.content);
   }
 
-  async editLastMeal(
-    input: AiService.EditLastMealInput,
-  ): Promise<EditLastMealResolution> {
-    const config = this.resolveModel('nutrition');
-    const systemPrompt = EDIT_LAST_MEAL_PROMPT.replace(
-      '{{lastMeal}}',
-      JSON.stringify(input.lastMeal),
-    );
+  async rerankNutritionMatchBatch(
+    input: AiService.RerankNutritionMatchBatchInput,
+  ): Promise<AiService.RerankNutritionMatchBatchResult> {
+    if (input.items.length === 0) {
+      return { results: [] };
+    }
+
+    const config = this.resolveModel('extraction');
+
+    const itemsBlock = input.items.map(item => {
+      const candidates = item.candidates
+        .map(c => `  - id=${c.id} | ${c.description} | ${c.category}`)
+        .join('\n');
+
+      return `- itemId="${item.itemId}" | alimento="${item.query}" | quantidade="${item.quantity}"\n${candidates}`;
+    }).join('\n');
+
+    const userMessage = `Itens:\n${itemsBlock}`;
 
     const result = await this.ai.chat({
       ...config,
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: input.message },
+        { role: 'system', content: RERANK_NUTRITION_MATCH_PROMPT },
+        { role: 'user', content: userMessage },
       ],
     });
 
-    return this.parseJson<EditLastMealResolution>(result.content);
+    return this.parseJson<AiService.RerankNutritionMatchBatchResult>(result.content);
   }
 
   async collectProfileData(
@@ -169,8 +178,24 @@ export namespace AiService {
     message: string;
   };
 
-  export type EditLastMealInput = {
-    lastMeal: PendingMealSnapshot;
-    message: string;
+  export type RerankNutritionMatchCandidate = {
+    id: number;
+    description: string;
+    category: string;
+  };
+
+  export type RerankNutritionMatchItem = {
+    itemId: string;
+    query: string;
+    quantity: string;
+    candidates: RerankNutritionMatchCandidate[];
+  };
+
+  export type RerankNutritionMatchBatchInput = {
+    items: RerankNutritionMatchItem[];
+  };
+
+  export type RerankNutritionMatchBatchResult = {
+    results: Array<{ itemId: string; id: number | null }>;
   };
 }
