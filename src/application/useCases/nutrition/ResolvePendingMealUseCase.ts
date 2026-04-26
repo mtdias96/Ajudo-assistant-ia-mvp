@@ -36,11 +36,11 @@ export class ResolvePendingMealUseCase {
         pending.foods = resolution.items.map(item => ({
           name: item.name,
           quantity: item.quantity,
-          calories: item.calories,
-          protein: item.protein,
-          carbs: item.carbs,
-          fat: item.fat,
-          fiber: item.fiber,
+          calories: item.calories ?? 0,
+          protein: item.protein ?? 0,
+          carbs: item.carbs ?? 0,
+          fat: item.fat ?? 0,
+          fiber: item.fiber ?? 0,
         }));
         pending.attempts += 1;
         pending.name = resolution.items[0]?.name ?? pending.name;
