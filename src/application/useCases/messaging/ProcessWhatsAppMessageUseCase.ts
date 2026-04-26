@@ -37,9 +37,17 @@ export class ProcessWhatsAppMessageUseCase {
     const profile = await this.profileRepository.findByAccountId(account.id);
 
     if (!profile || !profile.isComplete()) {
+      if (!message.Body) {
+        await this.whatsApp.sendText({
+          to: whatsAppId,
+          text: 'Para concluir seu cadastro, preciso que você responda por texto 🙂',
+        });
+        return;
+      }
+
       const reply = await this.collectProfileData.execute({
         accountId: account.id,
-        message: message.Body ?? '',
+        message: message.Body,
       });
 
       await this.whatsApp.sendText({ to: whatsAppId, text: reply });
