@@ -29,16 +29,15 @@ export class AnalyzeNutritionUseCase {
       return `Envie no máximo ${AnalyzeNutritionUseCase.MAX_ITEMS} alimentos por mensagem.`;
     }
 
-    const goalMetrics = await this.resolveGoal(profile);
-
-    await this.discardPendingMeal(profile.accountId);
-
     const now = new Date();
     const category = extracted.category ?? this.mealCategoryResolver.fromDate(now);
 
-    const foods = await this.nutritionEnricher.enrich(extracted.items);
-
-    const todaysMeals = await this.mealRepository.findMealsByAccountIdAndDate(profile.accountId, now);
+    const [goalMetrics, , foods, todaysMeals] = await Promise.all([
+      this.resolveGoal(profile),
+      this.discardPendingMeal(profile.accountId),
+      this.nutritionEnricher.enrich(extracted.items),
+      this.mealRepository.findMealsByAccountIdAndDate(profile.accountId, now),
+    ]);
     const consumedToday = AnalyzeNutritionUseCase.sumFoods(
       todaysMeals.filter(m => m.status === Meal.Status.PROCESSED),
     );

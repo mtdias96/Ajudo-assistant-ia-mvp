@@ -17,12 +17,12 @@ export class NutritionGuardrails {
 
     const factor = grams / 100;
 
-    const protein = this.clamp(item.protein / factor, NutritionGuardrails.MAX_PROTEIN_PER_100G);
-    const carbs = this.clamp(item.carbs / factor, NutritionGuardrails.MAX_CARBS_PER_100G);
-    const fat = this.clamp(item.fat / factor, NutritionGuardrails.MAX_FAT_PER_100G);
-    const fiber = this.clamp(item.fiber / factor, NutritionGuardrails.MAX_FIBER_PER_100G);
+    const protein = this.clamp((item.protein ?? 0) / factor, NutritionGuardrails.MAX_PROTEIN_PER_100G);
+    const carbs = this.clamp((item.carbs ?? 0) / factor, NutritionGuardrails.MAX_CARBS_PER_100G);
+    const fat = this.clamp((item.fat ?? 0) / factor, NutritionGuardrails.MAX_FAT_PER_100G);
+    const fiber = this.clamp((item.fiber ?? 0) / factor, NutritionGuardrails.MAX_FIBER_PER_100G);
 
-    const declaredCalories = this.clamp(item.calories / factor, NutritionGuardrails.MAX_CALORIES_PER_100G);
+    const declaredCalories = this.clamp((item.calories ?? 0) / factor, NutritionGuardrails.MAX_CALORIES_PER_100G);
     const derivedCalories = 4 * protein + 4 * carbs + 9 * fat;
 
     const calories = this.reconcileCalories(declaredCalories, derivedCalories);
@@ -59,11 +59,11 @@ export class NutritionGuardrails {
 
   private clampNonNegative(item: NutritionItem): NutritionGuardrails.Macros {
     return {
-      calories: Math.max(0, Math.round(item.calories)),
-      protein: Math.max(0, Math.round(item.protein)),
-      carbs: Math.max(0, Math.round(item.carbs)),
-      fat: Math.max(0, Math.round(item.fat)),
-      fiber: Math.max(0, Math.round(item.fiber)),
+      calories: Math.max(0, Math.round(item.calories ?? 0)),
+      protein: Math.max(0, Math.round(item.protein ?? 0)),
+      carbs: Math.max(0, Math.round(item.carbs ?? 0)),
+      fat: Math.max(0, Math.round(item.fat ?? 0)),
+      fiber: Math.max(0, Math.round(item.fiber ?? 0)),
     };
   }
 }

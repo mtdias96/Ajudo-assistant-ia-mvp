@@ -1,12 +1,14 @@
 import { AiParseError } from '@application/errors/application/AiParseError';
-import { AiGateway } from '@infrastructure/gateways/AiGateway';
+import { AiGateway } from '@infrastructure/gateways/ai/AiGateway';
+import { ESTIMATE_NUTRITION_BATCH_SCHEMA, EXTRACT_INTENT_SCHEMA, NUTRITION_RESULT_SCHEMA, ONBOARDING_RESULT_SCHEMA } from '@infrastructure/gateways/ai/schemas/AiSchemas';
 import { Injectable } from '@kernel/decorators/Injectable';
 
-import { EXTRACT_INTENT_PROMPT } from './prompts/extractIntent';
-import { NUTRITION_IMAGE_PROMPT } from './prompts/nutritionPrompt';
-import { ONBOARDING_PROMPT } from './prompts/onboardingPrompt';
-import { RERANK_NUTRITION_MATCH_PROMPT } from './prompts/rerankNutritionMatch';
-import { RESOLVE_PENDING_MEAL_PROMPT } from './prompts/resolvePendingMeal';
+import { ESTIMATE_NUTRITION_BATCH_PROMPT } from '@infrastructure/gateways/ai/prompts/estimateNutritionBatch';
+import { EXTRACT_INTENT_PROMPT } from '@infrastructure/gateways/ai/prompts/extractIntent';
+import { NUTRITION_IMAGE_PROMPT } from '@infrastructure/gateways/ai/prompts/nutritionPrompt';
+import { ONBOARDING_PROMPT } from '@infrastructure/gateways/ai/prompts/onboardingPrompt';
+import { RERANK_NUTRITION_MATCH_PROMPT } from '@infrastructure/gateways/ai/prompts/rerankNutritionMatch';
+import { RESOLVE_PENDING_MEAL_PROMPT } from '@infrastructure/gateways/ai/prompts/resolvePendingMeal';
 import { ExtractedIntent } from './types/ExtractedIntent';
 import { INTENT_MODEL_MAP, MODEL_TIERS, ModelTier } from './types/ModelTier';
 import { NutritionResult } from './types/NutritionResult';
@@ -22,13 +24,14 @@ export class AiService {
 
     const result = await this.ai.chat({
       ...config,
+      responseSchema: EXTRACT_INTENT_SCHEMA,
       messages: [
         { role: 'system', content: EXTRACT_INTENT_PROMPT },
         { role: 'user', content: message },
       ],
     });
 
-    return this.parseJson<ExtractedIntent>(result.content);
+    return JSON.parse(result.content) as ExtractedIntent;
   }
 
   async analyzeNutritionImage(
@@ -38,11 +41,12 @@ export class AiService {
 
     const result = await this.ai.analyzeImage({
       ...config,
+      responseSchema: NUTRITION_RESULT_SCHEMA,
       systemPrompt: NUTRITION_IMAGE_PROMPT,
       image,
     });
 
-    return this.parseJson<NutritionResult>(result.content);
+    return JSON.parse(result.content) as NutritionResult;
   }
 
   async resolvePendingMeal(
@@ -65,6 +69,32 @@ export class AiService {
     return this.parseJson<PendingResolutionIntent>(result.content);
   }
 
+  async estimateNutritionBatch(
+    input: AiService.EstimateNutritionBatchInput,
+  ): Promise<AiService.EstimateNutritionBatchResult> {
+    if (input.items.length === 0) {
+      return { results: [] };
+    }
+
+    const config = this.resolveModel('nutrition_estimation');
+
+    const itemsBlock = input.items.map(item => {
+      const group = item.foodGroup ? ` | grupo="${item.foodGroup}"` : '';
+      return `- itemId="${item.itemId}" | alimento="${item.name}" | gramas=${item.grams}${group}`;
+    }).join('\n');
+
+    const result = await this.ai.chat({
+      ...config,
+      responseSchema: ESTIMATE_NUTRITION_BATCH_SCHEMA,
+      messages: [
+        { role: 'system', content: ESTIMATE_NUTRITION_BATCH_PROMPT },
+        { role: 'user', content: `Itens:\n${itemsBlock}` },
+      ],
+    });
+
+    return this.parseJson<AiService.EstimateNutritionBatchResult>(result.content);
+  }
+
   async rerankNutritionMatchBatch(
     input: AiService.RerankNutritionMatchBatchInput,
   ): Promise<AiService.RerankNutritionMatchBatchResult> {
@@ -72,7 +102,7 @@ export class AiService {
       return { results: [] };
     }
 
-    const config = this.resolveModel('extraction');
+    const config = this.resolveModel('reranking');
 
     const itemsBlock = input.items.map(item => {
       const candidates = item.candidates
@@ -107,6 +137,7 @@ export class AiService {
 
     const result = await this.ai.chat({
       ...config,
+      responseSchema: ONBOARDING_RESULT_SCHEMA,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: message },
@@ -197,5 +228,29 @@ export namespace AiService {
 
   export type RerankNutritionMatchBatchResult = {
     results: Array<{ itemId: string; id: number | null }>;
+  };
+
+  export type EstimateNutritionBatchItem = {
+    itemId: string;
+    name: string;
+    grams: number;
+    foodGroup?: string;
+  };
+
+  export type EstimateNutritionBatchInput = {
+    items: EstimateNutritionBatchItem[];
+  };
+
+  export type EstimateNutritionBatchEntry = {
+    itemId: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
+
+  export type EstimateNutritionBatchResult = {
+    results: EstimateNutritionBatchEntry[];
   };
 }

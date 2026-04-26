@@ -2,7 +2,7 @@ import { NutritionGoal } from '@application/entities/NutritionGoal';
 import { CompleteProfile, Profile } from '@application/entities/Profile';
 import { AiService } from '@application/services/AiService';
 import { GoalCalculator } from '@application/services/nutrition/GoalCalculator';
-import { WELCOME_MESSAGE } from '@application/services/prompts/onboardingPrompt';
+import { WELCOME_MESSAGE } from '@infrastructure/gateways/ai/prompts/onboardingPrompt';
 import { NutritionGoalRepository } from '@infrastructure/database/dynamo/repositories/NutritionGoalRepository';
 import { ProfileRepository } from '@infrastructure/database/dynamo/repositories/ProfileRepository';
 import { Injectable } from '@kernel/decorators/Injectable';

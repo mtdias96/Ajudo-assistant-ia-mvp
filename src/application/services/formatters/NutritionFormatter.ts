@@ -76,8 +76,12 @@ export class NutritionFormatter {
   ): string {
     const items = meal.foods.map(
       (food) =>
-        `${food.name} (${food.quantity})\n` +
-        `↳ ${food.calories} kcal | P${food.protein} C${food.carbs} G${food.fat} F${food.fiber}`,
+        `*${food.name}* — ${food.quantity}\n` +
+        `🔥 *${food.calories} kcal*\n` +
+        `🥩 Proteína: ${food.protein}g\n` +
+        `🍞 Carboidrato: ${food.carbs}g\n` +
+        `🥑 Gordura: ${food.fat}g\n` +
+        `🌱 Fibra: ${food.fiber}g`,
     );
 
     const mealTotals = this.totals(meal);
@@ -89,8 +93,17 @@ export class NutritionFormatter {
       fiber: mealTotals.fiber + consumedBefore.fiber,
     };
 
-    const macros =
+    const mealSummary =
       '━━━━━━━━━━━━━━\n\n' +
+      '🍴 *Total da Refeição*\n' +
+      `🔥 *Calorias:* ${mealTotals.calories} kcal\n` +
+      `🥩 *Proteína:* ${mealTotals.protein}g\n` +
+      `🍞 *Carboidratos:* ${mealTotals.carbs}g\n` +
+      `🥑 *Gorduras:* ${mealTotals.fat}g\n` +
+      `🌱 *Fibra:* ${mealTotals.fiber}g`;
+
+    const macros =
+      '\n\n━━━━━━━━━━━━━━\n\n' +
       '📊 *Totais do Dia*\n' +
       this.row('🔥', 'Calorias', totals.calories, metrics.calories, ' kcal') + '\n' +
       this.row('🥩', 'Proteína', totals.protein, metrics.proteins, 'g') + '\n' +
@@ -105,17 +118,25 @@ export class NutritionFormatter {
       '2 - Cancelar\n' +
       'Ou envie a correção (ex: "foi 100g")';
 
-    return ['🍽 *Resumo da refeição*\n', ...items, macros + footer].join('\n\n');
+    return ['🍽 *Resumo da refeição*\n', ...items, mealSummary + macros + footer].join('\n\n');
   }
 
   formatBlocked(meal: Meal): string {
     const items = meal.foods
-      .map((food) => `• ${food.name} (${food.quantity}) — ${food.calories} kcal`)
-      .join('\n');
+      .map(
+        (food) =>
+          `*${food.name}* — ${food.quantity}\n` +
+          `🔥 *${food.calories} kcal*\n` +
+          `🥩 Proteína: ${food.protein}g\n` +
+          `🍞 Carboidrato: ${food.carbs}g\n` +
+          `🥑 Gordura: ${food.fat}g\n` +
+          `🌱 Fibra: ${food.fiber}g`,
+      )
+      .join('\n\n');
 
     return (
       '⚠️ Você tem um rascunho pendente:\n\n' +
-      `🍽 *${meal.name}*\n${items}\n\n` +
+      `🍽 *${meal.name}*\n\n${items}\n\n` +
       '*Responda:*\n' +
       '1 - Confirmar e salvar\n' +
       '2 - Cancelar rascunho\n' +

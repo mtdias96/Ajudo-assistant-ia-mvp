@@ -1,6 +1,15 @@
+import { Schema, ThinkingLevel as SdkThinkingLevel } from '@google/genai';
 
-import { vertexai } from '@infrastructure/clients/ia/geminiClient';
+import { genai } from '@infrastructure/clients/ia/geminiClient';
 import { Injectable } from '@kernel/decorators/Injectable';
+
+import { ThinkingLevel } from '@application/services/types/ModelTier';
+
+const THINKING_LEVEL_MAP: Record<ThinkingLevel, SdkThinkingLevel> = {
+  low: SdkThinkingLevel.LOW,
+  medium: SdkThinkingLevel.MEDIUM,
+  high: SdkThinkingLevel.HIGH,
+};
 
 @Injectable()
 export class AiGateway {
@@ -9,33 +18,33 @@ export class AiGateway {
     model,
     temperature,
     maxOutputTokens,
+    thinkingLevel,
+    responseSchema,
   }: AiGateway.ChatInput): Promise<AiGateway.ChatResult> {
     const systemMessage = messages.find(msg => msg.role === 'system');
     const conversationMessages = messages.filter(msg => msg.role !== 'system');
 
-    const generativeModel = vertexai.getGenerativeModel({
+    const response = await genai.models.generateContent({
       model: model ?? 'gemini-2.5-flash-lite',
-      ...(systemMessage && {
-        systemInstruction: {
-          parts: [{ text: systemMessage.content }],
-          role: 'system',
-        },
-      }),
-      generationConfig: {
-        ...(temperature !== undefined && { temperature }),
-        ...(maxOutputTokens !== undefined && { maxOutputTokens }),
-      },
-    });
-
-    const response = await generativeModel.generateContent({
       contents: conversationMessages.map(msg => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }],
       })),
+      config: {
+        ...(systemMessage && { systemInstruction: systemMessage.content }),
+        ...(temperature !== undefined && { temperature }),
+        ...(maxOutputTokens !== undefined && { maxOutputTokens }),
+        ...(thinkingLevel && {
+          thinkingConfig: { thinkingLevel: THINKING_LEVEL_MAP[thinkingLevel] },
+        }),
+        ...(responseSchema && {
+          responseMimeType: 'application/json',
+          responseSchema,
+        }),
+      },
     });
 
-    const content =
-      response.response.candidates?.[0]?.content?.parts?.[0]?.text;
+    const content = response.text;
 
     if (!content) {
       throw new Error('Empty response from AI provider.');
@@ -50,20 +59,11 @@ export class AiGateway {
     model,
     temperature,
     maxOutputTokens,
+    thinkingLevel,
+    responseSchema,
   }: AiGateway.AnalyzeImageInput): Promise<AiGateway.ChatResult> {
-    const generativeModel = vertexai.getGenerativeModel({
+    const response = await genai.models.generateContent({
       model: model ?? 'gemini-2.5-flash',
-      systemInstruction: {
-        parts: [{ text: systemPrompt }],
-        role: 'system',
-      },
-      generationConfig: {
-        ...(temperature !== undefined && { temperature }),
-        ...(maxOutputTokens !== undefined && { maxOutputTokens }),
-      },
-    });
-
-    const response = await generativeModel.generateContent({
       contents: [
         {
           role: 'user',
@@ -77,10 +77,21 @@ export class AiGateway {
           ],
         },
       ],
+      config: {
+        systemInstruction: systemPrompt,
+        ...(temperature !== undefined && { temperature }),
+        ...(maxOutputTokens !== undefined && { maxOutputTokens }),
+        ...(thinkingLevel && {
+          thinkingConfig: { thinkingLevel: THINKING_LEVEL_MAP[thinkingLevel] },
+        }),
+        ...(responseSchema && {
+          responseMimeType: 'application/json',
+          responseSchema,
+        }),
+      },
     });
 
-    const content =
-      response.response.candidates?.[0]?.content?.parts?.[0]?.text;
+    const content = response.text;
 
     if (!content) {
       throw new Error('Empty response from AI provider.');
@@ -101,6 +112,8 @@ export namespace AiGateway {
     model?: string;
     temperature?: number;
     maxOutputTokens?: number;
+    thinkingLevel?: ThinkingLevel;
+    responseSchema?: Schema;
   };
 
   export type ImagePayload = {
@@ -114,6 +127,8 @@ export namespace AiGateway {
     model?: string;
     temperature?: number;
     maxOutputTokens?: number;
+    thinkingLevel?: ThinkingLevel;
+    responseSchema?: Schema;
   };
 
   export type ChatResult = {

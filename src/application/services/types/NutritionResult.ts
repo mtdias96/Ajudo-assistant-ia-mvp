@@ -3,11 +3,11 @@ export type NutritionItem = {
   quantity: string;
   quantityGrams: number | null;
   foodGroup?: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber: number;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
 };
 
 export type NutritionTotal = {
@@ -20,5 +20,4 @@ export type NutritionTotal = {
 
 export type NutritionResult = {
   items: NutritionItem[];
-  total: NutritionTotal;
 };

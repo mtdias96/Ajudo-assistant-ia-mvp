@@ -1,11 +1,10 @@
 import { Meal } from '@application/entities/Meal';
 
-import { NutritionItem, NutritionTotal } from './NutritionResult';
+import { NutritionItem } from './NutritionResult';
 
 export type NutritionIntent = {
   intent: 'nutrition';
   items: NutritionItem[];
-  total: NutritionTotal;
   category?: Meal.Category;
 };
 
