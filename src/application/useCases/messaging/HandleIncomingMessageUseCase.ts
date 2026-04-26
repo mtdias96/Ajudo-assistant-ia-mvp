@@ -1,7 +1,7 @@
 import { Meal } from '@application/entities/Meal';
 import { CompleteProfile } from '@application/entities/Profile';
 import { AiService } from '@application/services/AiService';
-import { GENERAL_CHAT_PROMPT } from '@application/services/prompts/generalChat';
+import { GENERAL_CHAT_PROMPT } from '@infrastructure/gateways/ai/prompts/generalChat';
 import { ExtractedIntent } from '@application/services/types/ExtractedIntent';
 import { Injectable } from '@kernel/decorators/Injectable';
 import { AnalyzeNutritionUseCase } from '../nutrition/AnalyzeNutritionUseCase';
@@ -33,6 +33,7 @@ export class HandleIncomingMessageUseCase {
         return this.aiService.generateResponse(
           GENERAL_CHAT_PROMPT,
           extracted.message,
+          'unknown',
         );
     }
   }
