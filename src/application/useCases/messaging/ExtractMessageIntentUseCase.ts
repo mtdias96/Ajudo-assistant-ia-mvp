@@ -42,7 +42,6 @@ export class ExtractMessageIntentUseCase {
         intent: {
           intent: 'nutrition',
           items: result.items,
-          total: result.total,
         },
         inputType: Meal.InputType.IMAGE,
       };
