@@ -95,16 +95,6 @@ WhatsApp → API Gateway → Lambda → Controller → Use Cases → Entities
 
 ---
 
-## Roadmap
-
-- [ ] Monitoramento de treinos
-- [ ] Módulo financeiro (gastos e orçamento)
-- [ ] Agenda e lembretes
-- [ ] Registro por áudio (speech-to-text)
-- [ ] Metas semanais e relatórios de progresso
-
----
-
 ## Autor
 
 **Matheus Dias**
